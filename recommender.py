@@ -4,14 +4,14 @@ from sklearn.metrics.pairwise import cosine_similarity
 from scipy.sparse import csr_matrix
 
 # Ready only necessary columns for recommendation
-df = pd.read_csv("data/tracks_features.csv", usecols=["name", "album", "artists"], low_memory=False)[:10000]
+df = pd.read_csv("data/topSongs.csv", usecols=["title", "artist"], low_memory=False)
 
 # Clean the dataframe
-df = df.drop_duplicates(subset="name")  # remove duplicates
+df = df.drop_duplicates(subset="title")  # remove duplicates
 df = df.dropna(axis=0)                     # drop null values
 
-# Replace spaces in band name to read full value
-df["artists"] = df["artists"].str.replace(" ", "")
+# Replace spaces in artist name to read full value
+df["artist"] = df["artist"].str.replace(" ", "")
 # Combine all columns and assign as new column
 df["data"] = df.apply(lambda value: " ".join(value.astype("str")), axis=1)
 
@@ -19,11 +19,10 @@ df["data"] = df.apply(lambda value: " ".join(value.astype("str")), axis=1)
 vectorizer = CountVectorizer(binary=True)
 vectorized = vectorizer.fit_transform(df["data"])
 sparse_matrix = csr_matrix(vectorized)
-
 # Gather similarities in songs using cosine similarity
 similarities = cosine_similarity(sparse_matrix)
 # Assign the new dataframe with 'similarities' values
-df_temp = pd.DataFrame(similarities, columns=df["name"], index=df["name"]).reset_index()
+df_temp = pd.DataFrame(similarities, columns=df["title"], index=df["title"]).reset_index()
 
 true = True
 while true:
@@ -35,7 +34,7 @@ while true:
         input_song = input("Please enter the name of the song: ")
 
         if input_song in df_temp.columns:
-            recommendation = df_temp.nlargest(11, input_song)["name"]
+            recommendation = df_temp.nlargest(11, input_song)["title"]
             break
         else:
             print("Sorry, that song is not in our database. Please try again")
